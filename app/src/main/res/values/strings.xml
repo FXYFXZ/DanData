@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">DanData</string>
+    <string name="reset">ДАВАЙ ЦИФРУ</string>
+    <string name="enterhint">xxxx</string>
+</resources>
