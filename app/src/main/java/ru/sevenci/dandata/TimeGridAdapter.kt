@@ -30,7 +30,6 @@ class TimeGridAdapter (var context: Context, var timerList: List<PointValueHolde
     override fun getItemId(position: Int): Long {
         return position.toLong()
     }
-
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val newView: View
         if (convertView == null) {

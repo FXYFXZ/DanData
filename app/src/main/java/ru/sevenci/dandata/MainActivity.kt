@@ -1,21 +1,25 @@
 package ru.sevenci.dandata
 
+import android.app.AlertDialog
 import android.content.ContentValues
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.graphics.Color
-import android.graphics.ColorSpace
 import android.os.Bundle
 import android.util.Log
+import android.view.ContextMenu
+import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.widget.AdapterView
+import android.widget.ListView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import ru.sevenci.dandata.databinding.ActivityMainBinding
 import java.util.*
-import kotlin.time.seconds
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() { // CLASS
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var dbHelper: DBHelper
@@ -31,10 +35,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         dbHelper = DBHelper(this) // db ini
 
-
+        // ListPoints
         timerAdapter = TimeGridAdapter(this, listPoints)
-        binding.spPoints.adapter = timerAdapter
+        binding.lvPoints.adapter = timerAdapter
         binding.btnReset.setBackgroundColor(Color.RED)
+        registerForContextMenu(binding.lvPoints)
 
         binding.data.setOnEditorActionListener { _, i, _ ->
             if (i == EditorInfo.IME_ACTION_DONE) {
@@ -64,10 +69,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }, 0, 1000)
-
-
-
-
     } // ~On CREATE
 
     override fun onStart() {  // START
@@ -79,6 +80,57 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
+
+    override fun onCreateContextMenu(
+        menu: ContextMenu?,
+        v: View?,
+        menuInfo: ContextMenu.ContextMenuInfo?
+    ) {
+        if (v?.id==R.id.lvPoints) {
+            menu?.add(0, 0, 1, "Delete")
+            menu?.add(0, 1, 1, "Edit")
+        }
+        else
+            super.onCreateContextMenu(menu, v, menuInfo)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        if  (item.groupId == 0) {
+            val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
+            val index = info.position
+            when (item.itemId) {
+                0 -> DeletePoint(index)
+                1 -> EditPoint(index)
+            }
+        }
+        return super.onContextItemSelected(item)
+    }
+
+    private fun DeletePoint(myIndex: Int){
+
+        val builder = AlertDialog.Builder(this@MainActivity)
+        builder.setMessage("Are you sure you want to Delete?")
+            .setCancelable(false)
+            .setPositiveButton("Yes") { dialog, id ->
+                // Delete selected  from database
+                val tmr = timerAdapter.getItem(myIndex) as PointValueHolder
+                Log.d("myLog", "index: ${tmr.ID}")
+                val database: SQLiteDatabase = dbHelper.writableDatabase
+                database.execSQL("DELETE FROM ${DBHelper.TABLE_DATA} WHERE ${DBHelper.KEY_ID} = ${tmr.ID}")
+                dbHelper.close()
+                updatePoints()
+            }
+            .setNegativeButton("No") { dialog, id ->
+                dialog.dismiss() // Dismiss the dialog
+            }
+        val alert = builder.create()
+        alert.show()
+    }
+
+    private fun EditPoint(myIndex: Int){
+    }
+
 
     private fun updatePoints(){
         val database: SQLiteDatabase = dbHelper.writableDatabase
@@ -116,4 +168,4 @@ class MainActivity : AppCompatActivity() {
         updatePoints()
     }
 
-} // CLASS
+}
