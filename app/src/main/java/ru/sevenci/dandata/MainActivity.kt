@@ -2,6 +2,7 @@ package ru.sevenci.dandata
 
 import android.app.AlertDialog
 import android.content.ContentValues
+import android.content.Intent
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.graphics.Color
@@ -143,10 +144,13 @@ class MainActivity : AppCompatActivity() { // CLASS
 
     // открываем для редактирования
     private fun editPoint(myIndex: Int){
-
-        updatePoints()
+        val intent = Intent(this, EditPointActivity::class.java)
+        val tmr = timerAdapter.getItem(myIndex) as PointValueHolder
+        intent.putExtra("ID", tmr.ID)
+        intent.putExtra("Value", tmr.rvalue)
+        intent.putExtra("remark", tmr.rem)
+        startActivity(intent)
     }
-
 
     private fun updatePoints(){
         val database: SQLiteDatabase = dbHelper.writableDatabase
