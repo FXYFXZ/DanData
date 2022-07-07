@@ -7,13 +7,9 @@ import android.database.sqlite.SQLiteDatabase
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.view.ContextMenu
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.widget.AdapterView
-import android.widget.ListView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import ru.sevenci.dandata.databinding.ActivityMainBinding
 import java.util.*
@@ -25,9 +21,11 @@ class MainActivity : AppCompatActivity() { // CLASS
     private lateinit var dbHelper: DBHelper
     private var listPoints : MutableList<PointValueHolder> = mutableListOf(PointValueHolder())
     lateinit var timerAdapter : TimeGridAdapter
+    var secondsoffset = 0
     var seconds = 60
     var minutes = 10
     var alertData = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +59,7 @@ class MainActivity : AppCompatActivity() { // CLASS
             override fun run() {
                 runOnUiThread {
                     val curTime = Calendar.getInstance()
+                    curTime.add(Calendar.SECOND, secondsoffset*-1)
                     seconds = curTime.get(Calendar.SECOND)
                     minutes = curTime.get(Calendar.MINUTE)
                     (String.format("%02d", minutes) + ":" + String.format("%02d", seconds)).also { binding.fldTime.text = it }
@@ -70,6 +69,12 @@ class MainActivity : AppCompatActivity() { // CLASS
             }
         }, 0, 1000)
     } // ~On CREATE
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.topmenu,menu)
+        return super.onCreateOptionsMenu(menu)
+    }
 
     override fun onStart() {  // START
         super.onStart()
@@ -81,6 +86,15 @@ class MainActivity : AppCompatActivity() { // CLASS
 
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menuResetTimer -> {
+                val curTime = Calendar.getInstance()
+                secondsoffset = curTime.get(Calendar.SECOND)
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
 
     override fun onCreateContextMenu(
         menu: ContextMenu?,
@@ -100,15 +114,14 @@ class MainActivity : AppCompatActivity() { // CLASS
             val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
             val index = info.position
             when (item.itemId) {
-                0 -> DeletePoint(index)
-                1 -> EditPoint(index)
+                0 -> deletePoint(index)
+                1 -> editPoint(index)
             }
         }
         return super.onContextItemSelected(item)
     }
 
-    private fun DeletePoint(myIndex: Int){
-
+    private fun deletePoint(myIndex: Int){
         val builder = AlertDialog.Builder(this@MainActivity)
         builder.setMessage("Are you sure you want to Delete?")
             .setCancelable(false)
@@ -128,7 +141,10 @@ class MainActivity : AppCompatActivity() { // CLASS
         alert.show()
     }
 
-    private fun EditPoint(myIndex: Int){
+    // открываем для редактирования
+    private fun editPoint(myIndex: Int){
+
+        updatePoints()
     }
 
 
